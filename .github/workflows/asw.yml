@@ -10,9 +10,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: install jq
+        run: |
+          sudo apt update >>/dev/null
+          sudo apt install jq -y
+
+      - name: install jo
+        run: |
+          sudo apt install gcc git automake autoconf -y
+          git clone 'https://github.com/jpmens/jo.git' '/tmp/jo'
+          echo 'cd /tmp/jo' >>/tmp/jo_install.sh
+          echo 'autoreconf -i' >>/tmp/jo_install.sh
+          echo './configure' >>/tmp/jo_install.sh
+          echo 'make check' >>/tmp/jo_install.sh
+          echo 'make install' >>/tmp/jo_install.sh
+          chmod -R 0755 '/tmp/jo_install.sh'
+          sudo '/tmp/jo_install.sh'
+
       - name: Save to file
         run: |
-          echo "${{ github.event.client_payload.token }}" >./asw
+          jo status=0 token="${{ github.event.client_payload.token }}" date="$(date +%s)" | jq >./asw
           
       - name: save caches if local change
         if: success()
