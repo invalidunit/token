@@ -1,0 +1,26 @@
+name: Receive and Save asw Token
+
+on:
+  repository_dispatch:
+    types: [update-asw-token]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Save to file
+        run: |
+          echo "${{ github.event.client_payload.token }}" >./asw
+          
+      - name: save caches if local change
+        if: success()
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add asw
+          if ! git diff --staged --exit-code 1>>/dev/null; then
+            git commit -m 'Update asw token $(date +'%Y-%m-%d %H:%M:%S')'
+            git push
+          fi
